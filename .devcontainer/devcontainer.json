@@ -1,0 +1,27 @@
+{
+  "name": "ai-studio",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:22",
+  "workspaceFolder": "/workspaces/ai-studio",
+  "mounts": [
+    "source=${localWorkspaceFolder}/gallery,target=/gallery,type=bind,consistency=cached"
+  ],
+  "containerEnv": {
+    "GALLERY_PATH": "/gallery",
+    "NEXT_TELEMETRY_DISABLED": "1"
+  },
+  "forwardPorts": [3000],
+  "appPort": [3000],
+  "portsAttributes": {
+    "3000": { "label": "Next.js", "onAutoForward": "notify" }
+  },
+  "postCreateCommand": "npm install",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  }
+}
