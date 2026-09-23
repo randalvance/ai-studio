@@ -4,7 +4,8 @@ import { useState } from "react";
 import { assetFields, defaultValues, FORM_PREFIX, type JsonSchema } from "@/lib/catalog/schema";
 import type { ModelSpec } from "@/lib/catalog/types";
 import type { Asset } from "@/lib/types";
-import { inputClass } from "./ui";
+import { ghostButtonClass, inputClass } from "./ui";
+import { UploadButton } from "./upload-button";
 
 export interface PickableAsset {
   id: string;
@@ -62,22 +63,18 @@ function AssetPicker({
   accepts,
   maxItems,
   assets,
+  projectId,
 }: {
   name: string;
   multiple: boolean;
   accepts: "image" | "video" | "audio" | "any";
   maxItems: number | undefined;
   assets: PickableAsset[];
+  projectId: string;
 }) {
   const [selected, setSelected] = useState<string[]>([]);
-  const candidates = accepts === "any" ? assets : assets.filter((a) => a.type === accepts);
-  if (candidates.length === 0) {
-    return (
-      <p className="rounded-md border border-dashed border-border p-3 text-xs text-muted">
-        No {accepts === "any" ? "" : accepts + " "}assets in this project yet. Generate one first, then pick it here.
-      </p>
-    );
-  }
+  const [items, setItems] = useState<PickableAsset[]>(assets);
+  const candidates = accepts === "any" ? items : items.filter((a) => a.type === accepts);
   const toggle = (id: string) => {
     setSelected((prev) => {
       if (!multiple) return prev.includes(id) ? [] : [id];
@@ -86,7 +83,35 @@ function AssetPicker({
       return [...prev, id];
     });
   };
+  const upload = (
+    <UploadButton
+      projectId={projectId}
+      kind={accepts}
+      label={`Upload ${accepts === "any" ? "file" : accepts}`}
+      className={`${ghostButtonClass} px-2 py-1 text-xs`}
+      onUploaded={({ asset, url }) => {
+        const next: PickableAsset = { id: asset.id, name: asset.name, type: asset.type, tag: asset.tag, url, mimeType: asset.mimeType };
+        setItems((prev) => [next, ...prev.filter((p) => p.id !== next.id)]);
+        setSelected((prev) => (multiple ? (maxItems && prev.length >= maxItems ? prev : [...prev, next.id]) : [next.id]));
+      }}
+    />
+  );
+  if (candidates.length === 0) {
+    return (
+      <div className="flex flex-col gap-2 rounded-md border border-dashed border-border p-3 text-xs text-muted">
+        <span>No {accepts === "any" ? "" : accepts + " "}assets in this project yet. Generate one, or upload a file.</span>
+        <div>{upload}</div>
+      </div>
+    );
+  }
   return (
+    <div className="flex flex-col gap-2">
+    <div className="flex items-center justify-between text-[11px] text-muted">
+      <span>
+        {selected.length} selected{multiple && maxItems ? ` · up to ${maxItems}` : ""}
+      </span>
+      {upload}
+    </div>
     <div className="grid grid-cols-3 gap-2">
       {candidates.map((a) => {
         const on = selected.includes(a.id);
@@ -111,10 +136,11 @@ function AssetPicker({
         );
       })}
     </div>
+    </div>
   );
 }
 
-export function SchemaForm({ model, assets }: { model: ModelSpec; assets: PickableAsset[] }) {
+export function SchemaForm({ model, assets, projectId }: { model: ModelSpec; assets: PickableAsset[]; projectId: string }) {
   const schema = model.inputSchema;
   const defaults = defaultValues(schema);
   const media = new Map(assetFields(schema).map((f) => [f.name, f]));
@@ -139,7 +165,7 @@ export function SchemaForm({ model, assets }: { model: ModelSpec; assets: Pickab
     let control;
     const mediaField = media.get(key);
     if (mediaField) {
-      control = <AssetPicker name={name} multiple={mediaField.multiple} accepts={mediaField.accepts} maxItems={mediaField.maxItems} assets={assets} />;
+      control = <AssetPicker name={name} multiple={mediaField.multiple} accepts={mediaField.accepts} maxItems={mediaField.maxItems} assets={assets} projectId={projectId} />;
     } else if (prop.enum) {
       control = <EnumSelect name={name} prop={prop} initial={String(defaults[key] ?? prop.enum[0])} />;
     } else if (prop.type === "boolean") {

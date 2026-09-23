@@ -85,6 +85,9 @@ export const mockProvider: Provider = {
   id: "mock",
   label: "Mock (offline placeholders)",
   async generate(req): Promise<GenerateResult> {
+    // MOCK_DELAY_MS lets you watch the loading state without spending credits.
+    const delay = Number(process.env.MOCK_DELAY_MS ?? 0);
+    if (delay > 0) await new Promise((r) => setTimeout(r, delay));
     switch (req.model.outputType) {
       case "audio":
         return { bytes: wavPlaceholder(req), mimeType: "audio/wav", ext: "wav" };

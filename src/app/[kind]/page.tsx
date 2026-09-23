@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { generate, refreshCatalog } from "@/app/actions";
+import { refreshCatalog } from "@/app/actions";
+import { GenerateForm } from "@/components/generate-form";
+import { GenerationStatusProvider, PendingCard } from "@/components/generation-status";
 import { GenerationCard, assetUrl } from "@/components/generation-card";
 import { ModelSelect } from "@/components/model-select";
 import { ProjectSwitcher } from "@/components/project-switcher";
-import { SchemaForm, type PickableAsset } from "@/components/schema-form";
-import { Empty, buttonClass, ghostButtonClass, inputClass, sectionLabelClass } from "@/components/ui";
+import type { PickableAsset } from "@/components/schema-form";
+import { UploadButton } from "@/components/upload-button";
+import { Empty, ghostButtonClass, inputClass, sectionLabelClass } from "@/components/ui";
 import { assetFields } from "@/lib/catalog/schema";
 import { OUTPUT_TYPES, type ModelSpec, type OutputType } from "@/lib/catalog/types";
 import { isLiveProvider } from "@/lib/providers";
@@ -65,7 +68,7 @@ export default async function StudioPage(props: PageProps<"/[kind]">) {
   }));
 
   return (
-    <>
+    <GenerationStatusProvider>
       <aside className="flex w-[420px] shrink-0 flex-col gap-6 overflow-y-auto border-r border-border p-5">
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-semibold">{ASSET_TYPE_LABELS[kind]} Generator</h1>
@@ -117,16 +120,7 @@ export default async function StudioPage(props: PageProps<"/[kind]">) {
           </p>
         )}
 
-        {model && current && (
-          <form action={generate} className="flex flex-col gap-4">
-            <input type="hidden" name="kind" value={kind} />
-            <input type="hidden" name="projectId" value={current.id} />
-            <input type="hidden" name="model" value={model.slug} />
-            <span className={sectionLabelClass}>Parameters</span>
-            <SchemaForm key={model.slug} model={model} assets={pickable} />
-            <button className={buttonClass}>Generate</button>
-          </form>
-        )}
+        {model && current && <GenerateForm kind={kind} projectId={current.id} model={model} assets={pickable} />}
         {model && !current && <p className="text-xs text-muted">Create a project to start generating.</p>}
       </aside>
 
@@ -138,6 +132,9 @@ export default async function StudioPage(props: PageProps<"/[kind]">) {
             <input type="hidden" name="cols" value={cols} />
             <input name="q" defaultValue={q} placeholder="Search prompts or models…" className={`${inputClass} rounded-full`} />
           </form>
+          {current && (
+            <UploadButton projectId={current.id} kind={kind} label={`Upload ${kind}`} className={`${ghostButtonClass} rounded-full px-3 py-1.5 text-xs`} />
+          )}
           <div className="ml-auto flex items-center gap-1 rounded-full border border-border px-1 py-1">
             {COLS.map((c) => (
               <Link
@@ -152,16 +149,20 @@ export default async function StudioPage(props: PageProps<"/[kind]">) {
         </div>
         {!current ? (
           <Empty>Create a project on the left to see its generations here.</Empty>
-        ) : generations.length === 0 ? (
-          <Empty>{q ? "Nothing matches your search." : `No ${kind} generations in ${current.name} yet.`}</Empty>
         ) : (
           <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
+            <PendingCard />
             {generations.map((a) => (
               <GenerationCard key={a.id} asset={a} model={modelBySlug.get(a.model ?? "")} kind={kind} />
             ))}
+            {generations.length === 0 && (
+              <div className="col-span-full">
+                <Empty>{q ? "Nothing matches your search." : `No ${kind} generations in ${current.name} yet.`}</Empty>
+              </div>
+            )}
           </div>
         )}
       </main>
-    </>
+    </GenerationStatusProvider>
   );
 }

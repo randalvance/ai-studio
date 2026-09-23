@@ -36,7 +36,7 @@ export function GenerationCard({ asset, model, kind }: { asset: Asset; model: Mo
           {asset.name}
         </div>
         <div className="truncate text-muted" title={asset.model}>
-          {model ? `${model.title} · ${model.variantTitle}` : (asset.model ?? asset.provider)}
+          {asset.provider === "upload" ? "Uploaded file" : model ? `${model.title} · ${model.variantTitle}` : (asset.model ?? asset.provider)}
         </div>
         {asset.prompt && (
           <p className="line-clamp-2 text-muted" title={asset.prompt}>

@@ -105,7 +105,8 @@ export function outputUrl(status: StatusResponse): string | undefined {
 export function createHiggsfieldProvider(credential: string, options: HiggsfieldOptions = {}): Provider {
   const fetchFn = options.fetch ?? globalThis.fetch;
   const startInterval = options.pollIntervalMs ?? 2000;
-  const maxPollMs = options.maxPollMs ?? 5 * 60 * 1000;
+  // Video models regularly need more than 5 minutes; the docs leave the ceiling to the client.
+  const maxPollMs = options.maxPollMs ?? 15 * 60 * 1000;
   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
   async function submit(url: string, body: unknown, headers: Record<string, string>): Promise<SubmitResponse> {

@@ -26,6 +26,7 @@ The studio has three sections: Image, Video and Audio. Each shows the models fro
 - **Higgsfield provider** (default): POSTs to the model endpoint, polls, downloads the result. Referenced assets are uploaded to Higgsfield storage first (jpeg, png, webp, gif, wav, mp4 only) and their public URLs cached.
 - **ElevenLabs provider**: the Audio section. The API key needs the Voices: read and Text to Speech permissions (Models: read is optional; without it the documented models are used). Saving the key refreshes the catalog automatically. Pick a model and one of your voices (with a preview), type the line, and get a wav (default) or mp3 clip. Tag it Voice and use it as an audio reference for Seedance.
 - **Mock provider**: offline placeholders so the whole flow works without a key.
+- **Uploads**: every media input offers Upload next to the project's assets, and the generations header has an Upload button. Uploaded files become project assets you can reuse or tag.
 - **Tags**: mark an image as Character or Setting, or an audio clip as Voice, from its card. Tags show in reference pickers.
 
 The Higgsfield catalog currently has no audio models, so Audio is powered by ElevenLabs. Add the ElevenLabs key in Settings and refresh the catalog.

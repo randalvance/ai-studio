@@ -41,7 +41,7 @@ data/catalog.json    # cached model catalog (gitignored)
 ## Generation
 
 - Form fields are `f.<key>`; the server coerces them by schema type, validates (required, enum, min/max, lengths, item counts), resolves `format: uri` fields from gallery asset ids, and calls the provider.
-- Higgsfield provider: upload referenced assets via presigned URLs (public URL cached on the asset), POST `https://api.higgsfield.ai/<slug>`, poll `status_url` with 2s→10s backoff and a 5-minute cap, terminal statuses `completed | failed | nsfw | canceled`, download the first output.
+- Higgsfield provider: upload referenced assets via presigned URLs (public URL cached on the asset), POST `https://api.higgsfield.ai/<slug>`, poll `status_url` with 2s→10s backoff and a 15-minute cap, terminal statuses `completed | failed | nsfw | canceled`, download the first output.
 - ElevenLabs provider: POST `/v1/text-to-speech/<voice_id>?output_format=…` with `xi-api-key`; body `{ text, model_id, voice_settings, language_code?, seed? }`; the response body is the audio.
 - Provider dispatch: `mock` setting → mock for everything; otherwise by the model's provider.
 - Errors redirect back to the section with `?error=` and render as a banner.
